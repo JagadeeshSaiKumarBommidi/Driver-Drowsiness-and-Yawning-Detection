@@ -145,9 +145,12 @@ export function useMediaPipe(alertConfig: AlertConfig, isDetectionEnabled: boole
       console.log(`👁️ EAR: ${avgEAR.toFixed(3)} (threshold: ${alertConfig.earThreshold}) ${avgEAR < alertConfig.earThreshold ? '😴 DROWSY!' : '👁️ awake'} | 👄 Mouth: ${mouthRatio.toFixed(3)} (threshold: ${alertConfig.mouthThreshold}) ${mouthRatio > alertConfig.mouthThreshold ? '🥱 YAWN!' : '😐 normal'}`);
       
       // Detect drowsiness and yawning only if detection is enabled
-      // Simplified logic for maximum sensitivity
       const isDrowsy = isDetectionEnabledRef.current && avgEAR < alertConfig.earThreshold;
-      const isYawning = isDetectionEnabledRef.current && mouthRatio > alertConfig.mouthThreshold;
+
+      // Add a hard minimum mouth ratio so small/no opening is never treated as a yawn
+      const MIN_YAWN_MOUTH_RATIO = 0.08;
+      const effectiveMouthThreshold = Math.max(alertConfig.mouthThreshold, MIN_YAWN_MOUTH_RATIO);
+      const isYawning = isDetectionEnabledRef.current && mouthRatio > effectiveMouthThreshold;
       
       // Show detection state
       console.log(`🔍 Detection: Eyes=${isDrowsy ? 'DROWSY' : 'OK'}, Mouth=${isYawning ? 'YAWNING' : 'OK'}, Enabled=${isDetectionEnabledRef.current}`);
@@ -217,16 +220,10 @@ export function useMediaPipe(alertConfig: AlertConfig, isDetectionEnabled: boole
         const now = Date.now();
         const consecutiveFrames = yawnFrameCount.current;
         
-        // Increased cooldown to 4 seconds to prevent false positives
+        // Increased cooldown to 4 seconds to prevent alert spam
         if (now - lastYawnAlert.current > 4000) {
-          let riskLevel: 'moderate' | 'high' = 'moderate';
-          
-          // Determine risk level based on consecutive frames
-          if (consecutiveFrames >= alertConfig.consecutiveFrames * 2) {
-            riskLevel = 'high';
-          } else if (consecutiveFrames >= alertConfig.consecutiveFrames) {
-            riskLevel = 'moderate';
-          }
+          // For yawning we always treat it as a non-high-risk event
+          const riskLevel: 'moderate' = 'moderate';
           
           console.log(`🚨 YAWNING ALERT TRIGGERED! Frame count: ${consecutiveFrames}, Risk Level: ${riskLevel.toUpperCase()}`);
           audioAlert.playAlert('yawn', riskLevel);

@@ -58,18 +58,14 @@ export function calculateMouthRatio(mouthLandmarks: Array<{ x: number; y: number
   if (width === 0) return 0;
 
   const ratio = height / width;
-  
-  // Add validation to prevent false positives
-  // Normal talking/breathing should not exceed certain thresholds
-  const isValidYawn = height > 0.01 && width > 0.02 && ratio < 0.15;
-  const finalRatio = isValidYawn ? ratio : 0;
-  
-  // Debug logging for mouth ratio calculation with validation
-  if (Math.random() < 0.1) { // Log 10% of calculations for debugging
-    console.log(`👄 Mouth: height=${height.toFixed(4)}, width=${width.toFixed(4)}, ratio=${ratio.toFixed(4)}, valid=${isValidYawn}, final=${finalRatio.toFixed(4)}`);
+
+  // Debug logging for mouth ratio calculation
+  if (Math.random() < 0.1) { // Log ~10% of calculations for debugging
+    console.log(`👄 Mouth: height=${height.toFixed(4)}, width=${width.toFixed(4)}, ratio=${ratio.toFixed(4)}`);
   }
 
-  return finalRatio;
+  // Let the UI threshold (mouthThreshold) control sensitivity instead of zeroing ratios here
+  return ratio;
 }
 
 export function extractEyeLandmarks(landmarks: NormalizedLandmarkList) {

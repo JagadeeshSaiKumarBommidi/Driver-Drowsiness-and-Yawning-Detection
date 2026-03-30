@@ -15,7 +15,7 @@ function Dashboard() {
   
   const [alertConfig, setAlertConfig] = useState<AlertConfig>({
     earThreshold: 0.25,        // Change from 0.30
-    mouthThreshold: 0.080,     // Change from 0.035
+    mouthThreshold: 0.055,     // Default closer to recommended value
     consecutiveFrames: 5,      // Change from 8
     soundEnabled: true
   });
